@@ -3,12 +3,14 @@ package main
 import (
 	"net/http"
 	"strings"
-	//"github.com/a-h/templ"
 	//"strconv"
 )
 
 func main() {
 	http.HandleFunc("GET /contacts", get_contacts_handler)
+	http.HandleFunc("GET /contacts/new", get_add_contact_handler)
+	http.HandleFunc("POST /contacts/new", post_add_contact_handler)
+
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -34,4 +36,32 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+func get_add_contact_handler(w http.ResponseWriter, r *http.Request) {
+	var contact Contact
+	plantilla := layout(new(contact))
+	err := plantilla.Render(r.Context(), w)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func post_add_contact_handler(w http.ResponseWriter, r *http.Request) {
+	first := r.FormValue("first_name")
+	last := r.FormValue("last_name")
+	email := r.FormValue("email")
+	phone := r.FormValue("phone")
+
+	var contact Contact
+
+	contact.ID = len(contactList)+1
+	contact.First = first
+	contact.Last = last
+	contact.Email = email
+	contact.Phone = phone
+
+	contactList = append(contactList, contact)
+	http.Redirect(w, r, "/contacts", http.StatusSeeOther)
 }
