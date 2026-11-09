@@ -1,9 +1,52 @@
 package main
 
-templ contacts() {
-	<!DOCTYPE html>
-	<html lang="">
-		<head><h1>Contact app</h1></head>
-		<body></body>
-	</html>
+import(
+    "strconv"
+)
+
+templ layout(content templ.Component) {
+<!doctype html>
+  <html lang="">
+    <head>
+      <title>Contact App</title>
+    </head>
+    <body>
+        @content
+    </body>
+    </html>
+}
+
+templ contacts(list []Contact, search string) {
+	<form action="/contacts" method="get" class="tool-bar">
+        <label for="search"> Search </label>
+        <input id="search" type="search" name="q" value={ search } />
+        <input type="submit" value="Search" />
+    </form>
+    <table>
+        <thead>
+        <tr>
+            <th>First </th>
+            <th>Last </th>
+            <th>Phone </th>
+            <th>Email </th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        for _, c := range list{
+            <tr>
+            <td>{ c.First }</td>
+            <td>{ c.Last }</td>
+            <td>{ c.Phone }</td>
+            <td>{ c.Email }</td> 
+            <td><a href={ "/contacts/" + strconv.Itoa(c.ID) + "/edit" }>Edit</a>
+                <a href={ "/contacts/" + strconv.Itoa(c.ID) + "/view" }>View</a></td>
+            </tr>
+        }
+        </tbody>
+</table>
+
+    <p>
+        <a href="/contacts/new">Add Contact</a> 
+    </p>
 }

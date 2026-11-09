@@ -2,7 +2,9 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	//"github.com/a-h/templ"
+	//"strconv"
 )
 
 func main() {
@@ -12,6 +14,24 @@ func main() {
 }
 
 func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
-	plantilla := contacts()
-	plantilla.Render(r.Context(), w)
+	search := r.URL.Query().Get("q")
+
+	var list []Contact
+
+	if search != "" {
+		for _, c := range contactList {
+			if strings.ToLower(c.First) == strings.ToLower(search) {
+				list = append(list, c)
+			}
+		} 
+	} else {
+		list = contactList
+	}
+	
+	plantilla := layout(contacts(list, search))
+	err := plantilla.Render(r.Context(), w)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
 }
