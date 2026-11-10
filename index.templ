@@ -8,7 +8,7 @@ templ layout(content templ.Component) {
 		<head>
 			<title>Contact App</title>
 			<script src="/js/htmx.js"></script>
-			<link rel="stylesheet" href="https://unpkg.com/missing.css@1.2.0">
+			<link rel="stylesheet" href="https://unpkg.com/missing.css@1.2.0"/>
 		</head>
 		<body hx-boost="true">
 			<main>
@@ -18,7 +18,7 @@ templ layout(content templ.Component) {
 					</h1>
 				</header>
 				@content
-			</main>	
+			</main>
 		</body>
 	</html>
 }
@@ -124,7 +124,7 @@ templ view(contact Contact) {
 }
 
 templ edit(contact Contact) {
-    <form action={ "/contacts/" + strconv.Itoa(contact.ID) + "/edit" } method="post">
+	<form action={ "/contacts/" + strconv.Itoa(contact.ID) + "/edit" } method="post">
 		<fieldset>
 			<legend>Contact Values</legend>
 			<p>
@@ -170,11 +170,16 @@ templ edit(contact Contact) {
 			<button>Save</button>
 		</fieldset>
 	</form>
-    <form action={ "/contacts/" + strconv.Itoa(contact.ID) + "/delete" } method="post">
-        <button>Delete Contact</button>
-    </form>
 
-    <p>
-        <a href="/contacts">Back</a>
-    </p>
+	<button
+		hx-delete={ "/contacts/" + strconv.Itoa(contact.ID) }
+		hx-target="body"
+		hx-push-url="true"
+		hx-confirm="Are you sure you want to delete this contact?"
+	>
+		Delete Contact
+	</button>
+	<p>
+		<a href="/contacts">Back</a>
+	</p>
 }

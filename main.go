@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("GET /contacts", get_contacts_handler)
 	http.HandleFunc("GET /contacts/new", get_add_contact_handler)
 	http.HandleFunc("GET /contacts/{id}/view", get_contacts_datails_handler)
@@ -15,7 +16,8 @@ func main() {
 
 	http.HandleFunc("POST /contacts/new", post_add_contact_handler)
 	http.HandleFunc("POST /contacts/{id}/edit", post_edit_contact_handler)
-	http.HandleFunc("POST /contacts/{id}/delete", delete_contact_handler)
+
+	http.HandleFunc("DELETE /contacts/{id}", delete_contact_handler)
 
 	http.ListenAndServe(":8080", nil)
 }
