@@ -15,6 +15,7 @@ func main() {
 
 	http.HandleFunc("POST /contacts/new", post_add_contact_handler)
 	http.HandleFunc("POST /contacts/{id}/edit", post_edit_contact_handler)
+	http.HandleFunc("POST /contacts/{id}/delete", delete_contact_handler)
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -128,6 +129,22 @@ func post_edit_contact_handler(w http.ResponseWriter, r *http.Request) {
 	contact.Last = r.FormValue("last_name")
 	contact.Phone = r.FormValue("phone")
 	contact.Email = r.FormValue("email")
+
+	http.Redirect(w, r, "/contacts", http.StatusSeeOther)
+}
+
+func delete_contact_handler(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	id_number, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+	deleted := delete_contact_by_id(id_number)
+	if deleted == false {
+		http.NotFound(w, r)
+		return
+	}
 
 	http.Redirect(w, r, "/contacts", http.StatusSeeOther)
 }

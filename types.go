@@ -1,5 +1,7 @@
 package main
 
+import "slices"
+
 type Contact struct {
 	ID int
  	First string
@@ -20,4 +22,14 @@ func search_contact_by_id(id int) *Contact {
 		}
 	}
 	return nil
+}
+
+func delete_contact_by_id(id int) bool {
+	for i := range contactList {
+		if contactList[i].ID == id {
+			contactList = slices.Delete(contactList, i, i+1)
+			return true
+		}
+	}
+	return false
 }
