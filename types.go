@@ -9,6 +9,16 @@ type Contact struct {
 } 
 
 var contactList = []Contact {
-	{First: "Ana", Last: "", Email: "ana@example.com", Phone: ""},
-	{First: "Luis", Last: "", Email: "luis@example.com", Phone: ""},
+	{ID: 1, First: "Ana", Last: "", Email: "ana@example.com", Phone: ""},
+	{ID: 2, First: "Luis", Last: "", Email: "luis@example.com", Phone: ""},
+}
+
+func search_contact_by_id(id int) Contact {
+	var resultado Contact
+	for _, c := range contactList {
+		if c.ID == id {
+			return c
+		}
+	}
+	return resultado
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	//"strconv"
 )
@@ -9,6 +10,8 @@ import (
 func main() {
 	http.HandleFunc("GET /contacts", get_contacts_handler)
 	http.HandleFunc("GET /contacts/new", get_add_contact_handler)
+	http.HandleFunc("GET /contacts/{id}/view", get_contacts_datails_handler)
+
 	http.HandleFunc("POST /contacts/new", post_add_contact_handler)
 
 
@@ -64,4 +67,21 @@ func post_add_contact_handler(w http.ResponseWriter, r *http.Request) {
 
 	contactList = append(contactList, contact)
 	http.Redirect(w, r, "/contacts", http.StatusSeeOther)
+}
+
+func get_contacts_datails_handler(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	id_number, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+	contact := search_contact_by_id(id_number)
+
+	plantilla := layout(view(contact))
+	err1 := plantilla.Render(r.Context(), w)
+	if err1 != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
 }
