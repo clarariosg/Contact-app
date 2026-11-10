@@ -11,9 +11,10 @@ func main() {
 	http.HandleFunc("GET /contacts", get_contacts_handler)
 	http.HandleFunc("GET /contacts/new", get_add_contact_handler)
 	http.HandleFunc("GET /contacts/{id}/view", get_contacts_datails_handler)
+	http.HandleFunc("GET /contacts/{id}/edit", get_edit_contact_handler)
 
 	http.HandleFunc("POST /contacts/new", post_add_contact_handler)
-
+	http.HandleFunc("POST /contacts/{id}/edit", post_edit_contact_handler)
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -28,11 +29,11 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 			if strings.ToLower(c.First) == strings.ToLower(search) {
 				list = append(list, c)
 			}
-		} 
+		}
 	} else {
 		list = contactList
 	}
-	
+
 	plantilla := layout(contacts(list, search))
 	err := plantilla.Render(r.Context(), w)
 	if err != nil {
@@ -59,7 +60,7 @@ func post_add_contact_handler(w http.ResponseWriter, r *http.Request) {
 
 	var contact Contact
 
-	contact.ID = len(contactList)+1
+	contact.ID = len(contactList) + 1
 	contact.First = first
 	contact.Last = last
 	contact.Email = email
@@ -77,11 +78,56 @@ func get_contacts_datails_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	contact := search_contact_by_id(id_number)
+	if contact == nil {
+		http.NotFound(w, r)
+		return
+	}
 
-	plantilla := layout(view(contact))
+	plantilla := layout(view(*contact))
 	err1 := plantilla.Render(r.Context(), w)
 	if err1 != nil {
 		http.Error(w, "Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+func get_edit_contact_handler(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	id_number, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+	contact := search_contact_by_id(id_number)
+	if contact == nil {
+		http.NotFound(w, r)
+		return
+	}
+	plantilla := layout(edit(*contact))
+	err1 := plantilla.Render(r.Context(), w)
+	if err1 != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func post_edit_contact_handler(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	id_number, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+	contact := search_contact_by_id(id_number)
+	if contact == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	contact.First = r.FormValue("first_name")
+	contact.Last = r.FormValue("last_name")
+	contact.Phone = r.FormValue("phone")
+	contact.Email = r.FormValue("email")
+
+	http.Redirect(w, r, "/contacts", http.StatusSeeOther)
 }

@@ -1,100 +1,171 @@
 package main
 
-import(
-    "strconv"
-)
+import "strconv"
 
 templ layout(content templ.Component) {
-<!doctype html>
-  <html lang="">
-    <head>
-      <title>Contact App</title>
-    </head>
-    <body>
-        @content
-    </body>
-    </html>
+	<!DOCTYPE html>
+	<html lang="">
+		<head>
+			<title>Contact App</title>
+		</head>
+		<body>
+			@content
+		</body>
+	</html>
 }
 
 templ contacts(list []Contact, search string) {
 	<form action="/contacts" method="get" class="tool-bar">
-        <label for="search"> Search </label>
-        <input id="search" type="search" name="q" value={ search } />
-        <input type="submit" value="Search" />
-    </form>
-    <table>
-        <thead>
-        <tr>
-            <th>First </th>
-            <th>Last </th>
-            <th>Phone </th>
-            <th>Email </th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        for _, c := range list{
-            <tr>
-            <td>{ c.First }</td>
-            <td>{ c.Last }</td>
-            <td>{ c.Phone }</td>
-            <td>{ c.Email }</td> 
-            <td><a href={ "/contacts/" + strconv.Itoa(c.ID) + "/edit" }>Edit</a>
-                <a href={ "/contacts/" + strconv.Itoa(c.ID) + "/view" }>View</a></td>
-            </tr>
-        }
-        </tbody>
-</table>
-
-    <p>
-        <a href="/contacts/new">Add Contact</a> 
-    </p>
+		<label for="search">Search </label>
+		<input id="search" type="search" name="q" value={ search }/>
+		<input type="submit" value="Search"/>
+	</form>
+	<table>
+		<thead>
+			<tr>
+				<th>First </th>
+				<th>Last </th>
+				<th>Phone </th>
+				<th>Email </th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, c := range list {
+				<tr>
+					<td>{ c.First }</td>
+					<td>{ c.Last }</td>
+					<td>{ c.Phone }</td>
+					<td>{ c.Email }</td>
+					<td>
+						<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/edit" }>Edit</a>
+						<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/view" }>View</a>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+	<p>
+		<a href="/contacts/new">Add Contact</a>
+	</p>
 }
 
 templ new(contact Contact) {
-    <form action="/contacts/new" method="post"> 
-  <fieldset>
-    <legend>Contact Values</legend>
-    <p>
-      <label for="email">Email</label> 
-      <input name="email" id="email"
-        type="email" placeholder="Email"
-        value={ contact.Email }> 
-    </p>
-    <p>
-    <label for="first_name">First Name</label>
-    <input name="first_name" id="first_name" type="text"
-        placeholder="First Name" value={ contact.First }>
-    </p>
-    <p>
-        <label for="last_name">Last Name</label>
-        <input name="last_name" id="last_name" type="text"
-            placeholder="Last Name" value={ contact.Last }>
-    </p>
-    <p>
-        <label for="phone">Phone</label>
-        <input name="phone" id="phone" type="text" placeholder="Phone"
-            value={ contact.Phone }>
-    </p>
-    <button>Save</button>
-  </fieldset>
-</form>
-
-<p>
-  <a href="/contacts">Back</a>
-</p>
+	<form action="/contacts/new" method="post">
+		<fieldset>
+			<legend>Contact Values</legend>
+			<p>
+				<label for="email">Email</label>
+				<input
+					name="email"
+					id="email"
+					type="email"
+					placeholder="Email"
+					value={ contact.Email }
+				/>
+			</p>
+			<p>
+				<label for="first_name">First Name</label>
+				<input
+					name="first_name"
+					id="first_name"
+					type="text"
+					placeholder="First Name"
+					value={ contact.First }
+				/>
+			</p>
+			<p>
+				<label for="last_name">Last Name</label>
+				<input
+					name="last_name"
+					id="last_name"
+					type="text"
+					placeholder="Last Name"
+					value={ contact.Last }
+				/>
+			</p>
+			<p>
+				<label for="phone">Phone</label>
+				<input
+					name="phone"
+					id="phone"
+					type="text"
+					placeholder="Phone"
+					value={ contact.Phone }
+				/>
+			</p>
+			<button>Save</button>
+		</fieldset>
+	</form>
+	<p>
+		<a href="/contacts">Back</a>
+	</p>
 }
 
 templ view(contact Contact) {
-   <h1>{contact.First} {contact.Last}</h1>
+	<h1>{ contact.First } { contact.Last }</h1>
+	<div>
+		<div>Phone: { contact.Phone }</div>
+		<div>Email: { contact.Email }</div>
+	</div>
+	<p>
+		<a href={ "/contacts/" + strconv.Itoa(contact.ID) + "/edit" }>Edit</a>
+		<a href="/contacts">Back</a>
+	</p>
+}
 
-<div>
-  <div>Phone: {contact.Phone}</div>
-  <div>Email: {contact.Email}</div>
-</div>
+templ edit(contact Contact) {
+    <form action={ "/contacts/" + strconv.Itoa(contact.ID) + "/edit" } method="post">
+		<fieldset>
+			<legend>Contact Values</legend>
+			<p>
+				<label for="email">Email</label>
+				<input
+					name="email"
+					id="email"
+					type="text"
+					placeholder="Email"
+					value={ contact.Email }
+				/>
+			</p>
+			<p>
+				<label for="first_name">First Name</label>
+				<input
+					name="first_name"
+					id="first_name"
+					type="text"
+					placeholder="First Name"
+					value={ contact.First }
+				/>
+			</p>
+			<p>
+				<label for="last_name">Last Name</label>
+				<input
+					name="last_name"
+					id="last_name"
+					type="text"
+					placeholder="Last Name"
+					value={ contact.Last }
+				/>
+			</p>
+			<p>
+				<label for="phone">Phone</label>
+				<input
+					name="phone"
+					id="phone"
+					type="text"
+					placeholder="Phone"
+					value={ contact.Phone }
+				/>
+			</p>
+			<button>Save</button>
+		</fieldset>
+	</form>
+    <form action={ "/contacts/" + strconv.Itoa(contact.ID) + "/delete" } method="post">
+        <button>Delete Contact</button>
+    </form>
 
-<p>
-  <a href={ "/contacts/" + strconv.Itoa(contact.ID) + "/edit" }>Edit</a>
-  <a href="/contacts">Back</a>
-</p> 
+    <p>
+        <a href="/contacts">Back</a>
+    </p>
 }
