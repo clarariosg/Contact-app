@@ -7,9 +7,18 @@ templ layout(content templ.Component) {
 	<html lang="">
 		<head>
 			<title>Contact App</title>
+			<script src="/js/htmx.js"></script>
+			<link rel="stylesheet" href="https://unpkg.com/missing.css@1.2.0">
 		</head>
-		<body>
-			@content
+		<body hx-boost="true">
+			<main>
+				<header>
+					<h1>
+						Contact App
+					</h1>
+				</header>
+				@content
+			</main>	
 		</body>
 	</html>
 }
