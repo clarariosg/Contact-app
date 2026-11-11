@@ -1,6 +1,9 @@
 package main
 
-import "slices"
+import (
+	"slices"
+	"strings"
+)
 
 type Contact struct {
 	ID int
@@ -27,6 +30,24 @@ func delete_contact_by_id(id int) bool {
 		}
 	}
 	return false
+}
+
+func validate_email(id int, email string) string {
+	if email == "" {
+		return "Email vacío, escriba algo por favor"
+	}
+
+	if !strings.Contains(email, "@") || !strings.Contains(email, ".") {
+		return "Formato no válido de email"
+	}
+
+	for _, c := range contactList {
+		if c.Email == email && c.ID != id {
+			return "Email en uso. Tiene que ser único"
+		}
+	}
+
+	return ""
 }
 
 var contactList = []Contact{

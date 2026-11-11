@@ -13,6 +13,7 @@ func main() {
 	http.HandleFunc("GET /contacts/new", get_add_contact_handler)
 	http.HandleFunc("GET /contacts/{id}/view", get_contacts_datails_handler)
 	http.HandleFunc("GET /contacts/{id}/edit", get_edit_contact_handler)
+	http.HandleFunc("GET /contacts/{id}/email", get_validate_email_handler)
 
 	http.HandleFunc("POST /contacts/new", post_add_contact_handler)
 	http.HandleFunc("POST /contacts/{id}/edit", post_edit_contact_handler)
@@ -149,4 +150,25 @@ func delete_contact_handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/contacts", http.StatusSeeOther)
+}
+
+func get_validate_email_handler(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	id_number, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+	contact := search_contact_by_id(id_number)
+	if contact == nil {
+		http.NotFound(w, r)
+		return
+	}
+	
+	contact_to_validate := *contact
+	contact_to_validate.Email = r.URL.Query().Get("email")
+
+	email_error := validate_email(id_number, contact_to_validate.Email)
+
+	w.Write([]byte(email_error))
 }

@@ -132,10 +132,14 @@ templ edit(contact Contact) {
 				<input
 					name="email"
 					id="email"
-					type="text"
+					type="email"
+					hx-get={ "/contacts/" + strconv.Itoa(contact.ID) + "/email" }
+					hx-target="next .error"
+					hx-trigger="change, keyup delay:200ms changed"
 					placeholder="Email"
 					value={ contact.Email }
 				/>
+				<span class="error"></span>
 			</p>
 			<p>
 				<label for="first_name">First Name</label>
