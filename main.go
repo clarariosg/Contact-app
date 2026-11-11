@@ -12,7 +12,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("GET /contacts", get_contacts_handler)
 	http.HandleFunc("GET /contacts/new", get_add_contact_handler)
-	http.HandleFunc("GET /contacts/{id}/view", get_contacts_datails_handler)
+	http.HandleFunc("GET /contacts/{id}/view", get_contacts_details_handler)
 	http.HandleFunc("GET /contacts/{id}/edit", get_edit_contact_handler)
 	http.HandleFunc("GET /contacts/{id}/email", get_validate_email_handler)
 	http.HandleFunc("GET /contacts/count", get_contacts_count_handler)
@@ -21,6 +21,7 @@ func main() {
 	http.HandleFunc("POST /contacts/{id}/edit", post_edit_contact_handler)
 
 	http.HandleFunc("DELETE /contacts/{id}", delete_contact_handler)
+	http.HandleFunc("DELETE /contacts", delete_all_contact_handler)
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -47,7 +48,6 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page := 1
-	page_size := 10
 	// Si el query param de page no está vacio, se castea a int y si no da error se usa para paginacion
 	if page_string != "" {
 		page_number, err := strconv.Atoi(page_string)
@@ -58,18 +58,7 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 		page = page_number
 	}
 
-	start := (page-1)*page_size
-	end := start + page_size
-
-	if start > len(list) {
-		start = len(list)
-	}
-
-	if end > len(list) {
-		end = len(list)
-	}
-
-	page_contacts := list[start:end]
+	page_contacts := paginate_contacts(list, page, 10)
 
 	if r.Header.Get("HX-Trigger") == "search" {
 		plantilla := rows(page_contacts)
@@ -117,7 +106,7 @@ func post_add_contact_handler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/contacts", http.StatusSeeOther)
 }
 
-func get_contacts_datails_handler(w http.ResponseWriter, r *http.Request) {
+func get_contacts_details_handler(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	id_number, err := strconv.Atoi(id)
 	if err != nil {
@@ -224,4 +213,36 @@ func get_validate_email_handler(w http.ResponseWriter, r *http.Request) {
 func get_contacts_count_handler(w http.ResponseWriter, r *http.Request) {
 	count := len(contactList)
 	fmt.Fprintf(w, "(%d total Contacts)", count)
+}
+
+func delete_all_contact_handler(w http.ResponseWriter, r *http.Request) {
+	var ids_a_eliminar []int
+	ids_query := r.URL.Query()["selected_contact_ids"]
+	
+	for _, id := range ids_query {
+		id_to_number, err := strconv.Atoi(id)
+		if err != nil {
+			http.Error(w, "Invalid contact id", http.StatusBadRequest)
+			return
+		}
+		ids_a_eliminar = append(ids_a_eliminar, id_to_number)
+	}
+
+	for _, contact_id := range ids_a_eliminar {
+		deleted := delete_contact_by_id(contact_id)
+		if !deleted {
+			http.NotFound(w, r)
+			return
+		}
+	}
+	page := 1
+	
+	page_contacts := paginate_contacts(contactList, page, 10)
+
+	plantilla := layout(contacts(page_contacts, "", 1))
+	err := plantilla.Render(r.Context(), w)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
 }
