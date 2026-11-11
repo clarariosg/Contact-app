@@ -50,6 +50,21 @@ func validate_email(id int, email string) string {
 	return ""
 }
 
+func paginate_contacts(contacts []Contact, page int, page_size int) []Contact {
+	start := (page - 1) * page_size
+	end := start + page_size
+
+	if start > len(contacts) {
+		start = len(contacts)
+	}
+
+	if end > len(contacts) {
+		end = len(contacts)
+	}
+
+	return contacts[start:end]
+}
+
 var contactList = []Contact{
 	{ID: 1, First: "Clara", Last: "Rios", Phone: "644431064", Email: "clara@example.com"},
 	{ID: 2, First: "Nacho", Last: "Rios", Phone: "622612006", Email: "nacho@example.com"},

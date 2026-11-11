@@ -9,7 +9,7 @@ templ layout(content templ.Component) {
 			<title>Contact App</title>
 			<script src="/js/htmx.js"></script>
 			<link rel="stylesheet" href="https://unpkg.com/missing.css@1.2.0"/>
-			<link rel="stylesheet" href="/style.css">
+			<link rel="stylesheet" href="/style.css"/>
 		</head>
 		<body hx-boost="true">
 			<main>
@@ -51,20 +51,30 @@ templ contacts(list []Contact, search string, page int) {
 		<input type="submit" value="Search"/>
 	</form>
 	// Tabla de contactos (resultados de busqueda)
-	<table>
-		<thead>
-			<tr>
-				<th>First </th>
-				<th>Last </th>
-				<th>Phone </th>
-				<th>Email </th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
-			@rows(list)
-		</tbody>
-	</table>
+	<form>
+		<table>
+			<thead>
+				<tr>
+					<th></th>
+					<th>First </th>
+					<th>Last </th>
+					<th>Phone </th>
+					<th>Email </th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				@rows(list)
+			</tbody>
+		</table>
+		<button
+			hx-delete="/contacts"
+			hx-confirm="Are you sure you want to delete these contacts?"
+			hx-target="body"
+		>
+			Delete Selected Contacs
+		</button>
+	</form>
 	// Enlaces previous y next para paginación
 	<div>
 		<span style="float: left;">
@@ -91,6 +101,13 @@ templ contacts(list []Contact, search string, page int) {
 templ rows(list []Contact) {
 	for _, c := range list {
 		<tr>
+			<td>
+				<input
+					type="checkbox"
+					name="selected_contact_ids"
+					value={ c.ID }
+				/>
+			</td>
 			<td>{ c.First }</td>
 			<td>{ c.Last }</td>
 			<td>{ c.Phone }</td>
