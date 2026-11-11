@@ -9,6 +9,7 @@ templ layout(content templ.Component) {
 			<title>Contact App</title>
 			<script src="/js/htmx.js"></script>
 			<link rel="stylesheet" href="https://unpkg.com/missing.css@1.2.0"/>
+			<link rel="stylesheet" href="/style.css">
 		</head>
 		<body hx-boost="true">
 			<main>
@@ -47,7 +48,6 @@ templ contacts(list []Contact, search string, page int) {
 			src="/img/spinning-circles.svg"
 			alt="Request In Flight..."
 		/>
-
 		<input type="submit" value="Search"/>
 	</form>
 	// Tabla de contactos (resultados de busqueda)
@@ -98,6 +98,13 @@ templ rows(list []Contact) {
 			<td>
 				<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/edit" }>Edit</a>
 				<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/view" }>View</a>
+				<a
+					href="#"
+					hx-delete={ "/contacts/" + strconv.Itoa(c.ID) }
+					hx-swap="outerHTML swap:1s"
+					hx-confirm="Are you sure you want to delete this contact?"
+					hx-target="closest tr"
+				>Delete</a>
 			</td>
 		</tr>
 	}
@@ -219,6 +226,7 @@ templ edit(contact Contact) {
 		</fieldset>
 	</form>
 	<button
+		id="delete-btn"
 		hx-delete={ "/contacts/" + strconv.Itoa(contact.ID) }
 		hx-target="body"
 		hx-push-url="true"
