@@ -191,8 +191,13 @@ func delete_contact_handler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-
-	http.Redirect(w, r, "/contacts", http.StatusSeeOther)
+	if r.Header.Get("HX-Trigger") == "delete-btn" {
+		w.Header().Set("HX-Redirect", "/contacts")
+		w.WriteHeader(http.StatusSeeOther)
+		return
+	}
+	
+	w.WriteHeader(http.StatusOK)
 }
 
 func get_validate_email_handler(w http.ResponseWriter, r *http.Request) {
