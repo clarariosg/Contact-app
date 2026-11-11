@@ -24,8 +24,11 @@ templ layout(content templ.Component) {
 }
 
 templ contacts(list []Contact, search string, page int) {
+	// formulario de busqueda
 	<form action="/contacts" method="get" class="tool-bar">
+		// Descripcion del input
 		<label for="search">Search </label>
+		// Input de texto para buscar contactos
 		<input
 			id="search"
 			type="search"
@@ -37,14 +40,17 @@ templ contacts(list []Contact, search string, page int) {
 			hx-push-url="true"
 			hx-indicator="#spinner"
 		/>
+		// spinner circular de carga
 		<img
 			id="spinner"
 			class="htmx-indicator"
 			src="/img/spinning-circles.svg"
 			alt="Request In Flight..."
 		/>
+
 		<input type="submit" value="Search"/>
 	</form>
+	// Tabla de contactos (resultados de busqueda)
 	<table>
 		<thead>
 			<tr>
@@ -59,6 +65,7 @@ templ contacts(list []Contact, search string, page int) {
 			@rows(list)
 		</tbody>
 	</table>
+	// Enlaces previous y next para paginación
 	<div>
 		<span style="float: left;">
 			if page > 1 {
@@ -71,6 +78,13 @@ templ contacts(list []Contact, search string, page int) {
 	</div>
 	<p>
 		<a href="/contacts/new">Add Contact</a>
+		<span hx-get="/contacts/count" hx-trigger="revealed">
+			<img
+				id="spinner"
+				class="htmx-indicator"
+				src="/img/spinning-circles.svg"
+			/>
+		</span>
 	</p>
 }
 
