@@ -71,6 +71,13 @@ templ contacts(list []Contact, search string, page int) {
 	</div>
 	<p>
 		<a href="/contacts/new">Add Contact</a>
+		<span hx-get="/contacts/count" hx-trigger="revealed">
+			<img
+				id="spinner"
+				class="htmx-indicator"
+				src="/img/spinning-circles.svg"
+			/>
+		</span>
 	</p>
 }
 

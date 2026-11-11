@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,6 +15,7 @@ func main() {
 	http.HandleFunc("GET /contacts/{id}/view", get_contacts_datails_handler)
 	http.HandleFunc("GET /contacts/{id}/edit", get_edit_contact_handler)
 	http.HandleFunc("GET /contacts/{id}/email", get_validate_email_handler)
+	http.HandleFunc("GET /contacts/count", get_contacts_count_handler)
 
 	http.HandleFunc("POST /contacts/new", post_add_contact_handler)
 	http.HandleFunc("POST /contacts/{id}/edit", post_edit_contact_handler)
@@ -26,6 +28,7 @@ func main() {
 func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("q")
 	page_string := r.URL.Query().Get("page")
+	
 	var list []Contact
 
 	if search != "" {
@@ -208,4 +211,9 @@ func get_validate_email_handler(w http.ResponseWriter, r *http.Request) {
 	email_error := validate_email(id_number, contact_to_validate.Email)
 
 	w.Write([]byte(email_error))
+}
+
+func get_contacts_count_handler(w http.ResponseWriter, r *http.Request) {
+	count := len(contactList)
+	fmt.Fprintf(w, "(%d total Contacts)", count)
 }
