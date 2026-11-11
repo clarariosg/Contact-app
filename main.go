@@ -30,7 +30,10 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 
 	if search != "" {
 		for _, c := range contactList {
-			if strings.ToLower(c.First) == strings.ToLower(search) {
+			if strings.Contains(strings.ToLower(c.First), strings.ToLower(search)) ||
+			strings.Contains(strings.ToLower(c.Last), strings.ToLower(search)) ||
+			strings.Contains(strings.ToLower(c.Email), strings.ToLower(search)) ||
+			strings.Contains(strings.ToLower(c.Phone), strings.ToLower(search)) {
 				list = append(list, c)
 			}
 		}
@@ -61,6 +64,16 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	page_contacts := list[start:end]
+
+	if r.Header.Get("HX-Trigger") == "search" {
+		plantilla := rows(page_contacts)
+		err := plantilla.Render(r.Context(), w)
+		if err != nil {
+			http.Error(w, "Error", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
 
 	plantilla := layout(contacts(page_contacts, search, page))
 	err := plantilla.Render(r.Context(), w)

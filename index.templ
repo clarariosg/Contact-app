@@ -26,7 +26,23 @@ templ layout(content templ.Component) {
 templ contacts(list []Contact, search string, page int) {
 	<form action="/contacts" method="get" class="tool-bar">
 		<label for="search">Search </label>
-		<input id="search" type="search" name="q" value={ search }/>
+		<input
+			id="search"
+			type="search"
+			name="q"
+			value={ search }
+			hx-get="/contacts"
+			hx-trigger="search, keyup delay:200ms changed"
+			hx-target="tbody"
+			hx-push-url="true"
+			hx-indicator="#spinner"
+		/>
+		<img
+			id="spinner"
+			class="htmx-indicator"
+			src="/img/spinning-circles.svg"
+			alt="Request In Flight..."
+		/>
 		<input type="submit" value="Search"/>
 	</form>
 	<table>
@@ -40,18 +56,7 @@ templ contacts(list []Contact, search string, page int) {
 			</tr>
 		</thead>
 		<tbody>
-			for _, c := range list {
-				<tr>
-					<td>{ c.First }</td>
-					<td>{ c.Last }</td>
-					<td>{ c.Phone }</td>
-					<td>{ c.Email }</td>
-					<td>
-						<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/edit" }>Edit</a>
-						<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/view" }>View</a>
-					</td>
-				</tr>
-			}
+			@rows(list)
 		</tbody>
 	</table>
 	<div>
@@ -67,6 +72,21 @@ templ contacts(list []Contact, search string, page int) {
 	<p>
 		<a href="/contacts/new">Add Contact</a>
 	</p>
+}
+
+templ rows(list []Contact) {
+	for _, c := range list {
+		<tr>
+			<td>{ c.First }</td>
+			<td>{ c.Last }</td>
+			<td>{ c.Phone }</td>
+			<td>{ c.Email }</td>
+			<td>
+				<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/edit" }>Edit</a>
+				<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/view" }>View</a>
+			</td>
+		</tr>
+	}
 }
 
 templ new(contact Contact) {
