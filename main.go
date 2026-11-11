@@ -25,7 +25,7 @@ func main() {
 
 func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("q")
-
+	page_string := r.URL.Query().Get("page")
 	var list []Contact
 
 	if search != "" {
@@ -38,7 +38,31 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 		list = contactList
 	}
 
-	plantilla := layout(contacts(list, search))
+	page := 1
+	page_size := 10
+	if page_string != "" {
+		page_number, err := strconv.Atoi(page_string)
+		if err != nil {
+			http.Error(w, "Error", http.StatusInternalServerError)
+			return
+		}
+		page = page_number
+	}
+
+	start := (page-1)*page_size
+	end := start + page_size
+
+	if start > len(list) {
+		start = len(list)
+	}
+
+	if end > len(list) {
+		end = len(list)
+	}
+
+	page_contacts := list[start:end]
+
+	plantilla := layout(contacts(page_contacts, search, page))
 	err := plantilla.Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, "Error", http.StatusInternalServerError)
@@ -164,7 +188,7 @@ func get_validate_email_handler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	
+
 	contact_to_validate := *contact
 	contact_to_validate.Email = r.URL.Query().Get("email")
 

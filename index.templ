@@ -23,7 +23,7 @@ templ layout(content templ.Component) {
 	</html>
 }
 
-templ contacts(list []Contact, search string) {
+templ contacts(list []Contact, search string, page int) {
 	<form action="/contacts" method="get" class="tool-bar">
 		<label for="search">Search </label>
 		<input id="search" type="search" name="q" value={ search }/>
@@ -54,6 +54,16 @@ templ contacts(list []Contact, search string) {
 			}
 		</tbody>
 	</table>
+	<div>
+		<span style="float: left;">
+			if page > 1 {
+				<a href={ "/contacts?page=" + strconv.Itoa(page-1) }>Previous</a>
+			}
+			if len(list) == 10 {
+				<a href={ "/contacts?page=" + strconv.Itoa(page+1) }>Next</a>
+			}
+		</span>
+	</div>
 	<p>
 		<a href="/contacts/new">Add Contact</a>
 	</p>
@@ -174,7 +184,6 @@ templ edit(contact Contact) {
 			<button>Save</button>
 		</fieldset>
 	</form>
-
 	<button
 		hx-delete={ "/contacts/" + strconv.Itoa(contact.ID) }
 		hx-target="body"
