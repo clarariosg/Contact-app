@@ -7,17 +7,42 @@ templ layout(content templ.Component) {
 	<html lang="">
 		<head>
 			<title>Contact App</title>
+			<script src="/js/htmx.js"></script>
+			<link rel="stylesheet" href="https://unpkg.com/missing.css@1.2.0"/>
 		</head>
-		<body>
-			@content
+		<body hx-boost="true">
+			<main>
+				<header>
+					<h1>
+						Contact App
+					</h1>
+				</header>
+				@content
+			</main>
 		</body>
 	</html>
 }
 
-templ contacts(list []Contact, search string) {
+templ contacts(list []Contact, search string, page int) {
 	<form action="/contacts" method="get" class="tool-bar">
 		<label for="search">Search </label>
-		<input id="search" type="search" name="q" value={ search }/>
+		<input
+			id="search"
+			type="search"
+			name="q"
+			value={ search }
+			hx-get="/contacts"
+			hx-trigger="search, keyup delay:200ms changed"
+			hx-target="tbody"
+			hx-push-url="true"
+			hx-indicator="#spinner"
+		/>
+		<img
+			id="spinner"
+			class="htmx-indicator"
+			src="/img/spinning-circles.svg"
+			alt="Request In Flight..."
+		/>
 		<input type="submit" value="Search"/>
 	</form>
 	<table>
@@ -31,23 +56,44 @@ templ contacts(list []Contact, search string) {
 			</tr>
 		</thead>
 		<tbody>
-			for _, c := range list {
-				<tr>
-					<td>{ c.First }</td>
-					<td>{ c.Last }</td>
-					<td>{ c.Phone }</td>
-					<td>{ c.Email }</td>
-					<td>
-						<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/edit" }>Edit</a>
-						<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/view" }>View</a>
-					</td>
-				</tr>
-			}
+			@rows(list)
 		</tbody>
 	</table>
+	<div>
+		<span style="float: left;">
+			if page > 1 {
+				<a href={ "/contacts?page=" + strconv.Itoa(page-1) }>Previous</a>
+			}
+			if len(list) == 10 {
+				<a href={ "/contacts?page=" + strconv.Itoa(page+1) }>Next</a>
+			}
+		</span>
+	</div>
 	<p>
 		<a href="/contacts/new">Add Contact</a>
+		<span hx-get="/contacts/count" hx-trigger="revealed">
+			<img
+				id="spinner"
+				class="htmx-indicator"
+				src="/img/spinning-circles.svg"
+			/>
+		</span>
 	</p>
+}
+
+templ rows(list []Contact) {
+	for _, c := range list {
+		<tr>
+			<td>{ c.First }</td>
+			<td>{ c.Last }</td>
+			<td>{ c.Phone }</td>
+			<td>{ c.Email }</td>
+			<td>
+				<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/edit" }>Edit</a>
+				<a href={ "/contacts/" + strconv.Itoa(c.ID) + "/view" }>View</a>
+			</td>
+		</tr>
+	}
 }
 
 templ new(contact Contact) {
@@ -115,7 +161,7 @@ templ view(contact Contact) {
 }
 
 templ edit(contact Contact) {
-    <form action={ "/contacts/" + strconv.Itoa(contact.ID) + "/edit" } method="post">
+	<form action={ "/contacts/" + strconv.Itoa(contact.ID) + "/edit" } method="post">
 		<fieldset>
 			<legend>Contact Values</legend>
 			<p>
@@ -123,10 +169,14 @@ templ edit(contact Contact) {
 				<input
 					name="email"
 					id="email"
-					type="text"
+					type="email"
+					hx-get={ "/contacts/" + strconv.Itoa(contact.ID) + "/email" }
+					hx-target="next .error"
+					hx-trigger="change, keyup delay:200ms changed"
 					placeholder="Email"
 					value={ contact.Email }
 				/>
+				<span class="error"></span>
 			</p>
 			<p>
 				<label for="first_name">First Name</label>
@@ -161,11 +211,15 @@ templ edit(contact Contact) {
 			<button>Save</button>
 		</fieldset>
 	</form>
-    <form action={ "/contacts/" + strconv.Itoa(contact.ID) + "/delete" } method="post">
-        <button>Delete Contact</button>
-    </form>
-
-    <p>
-        <a href="/contacts">Back</a>
-    </p>
+	<button
+		hx-delete={ "/contacts/" + strconv.Itoa(contact.ID) }
+		hx-target="body"
+		hx-push-url="true"
+		hx-confirm="Are you sure you want to delete this contact?"
+	>
+		Delete Contact
+	</button>
+	<p>
+		<a href="/contacts">Back</a>
+	</p>
 }

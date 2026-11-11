@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -8,26 +9,34 @@ import (
 )
 
 func main() {
+	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("GET /contacts", get_contacts_handler)
 	http.HandleFunc("GET /contacts/new", get_add_contact_handler)
 	http.HandleFunc("GET /contacts/{id}/view", get_contacts_datails_handler)
 	http.HandleFunc("GET /contacts/{id}/edit", get_edit_contact_handler)
+	http.HandleFunc("GET /contacts/{id}/email", get_validate_email_handler)
+	http.HandleFunc("GET /contacts/count", get_contacts_count_handler)
 
 	http.HandleFunc("POST /contacts/new", post_add_contact_handler)
 	http.HandleFunc("POST /contacts/{id}/edit", post_edit_contact_handler)
-	http.HandleFunc("POST /contacts/{id}/delete", delete_contact_handler)
+
+	http.HandleFunc("DELETE /contacts/{id}", delete_contact_handler)
 
 	http.ListenAndServe(":8080", nil)
 }
 
 func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("q")
-
+	page_string := r.URL.Query().Get("page")
+	
 	var list []Contact
 
 	if search != "" {
 		for _, c := range contactList {
-			if strings.ToLower(c.First) == strings.ToLower(search) {
+			if strings.Contains(strings.ToLower(c.First), strings.ToLower(search)) ||
+			strings.Contains(strings.ToLower(c.Last), strings.ToLower(search)) ||
+			strings.Contains(strings.ToLower(c.Email), strings.ToLower(search)) ||
+			strings.Contains(strings.ToLower(c.Phone), strings.ToLower(search)) {
 				list = append(list, c)
 			}
 		}
@@ -35,7 +44,41 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 		list = contactList
 	}
 
-	plantilla := layout(contacts(list, search))
+	page := 1
+	page_size := 10
+	if page_string != "" {
+		page_number, err := strconv.Atoi(page_string)
+		if err != nil {
+			http.Error(w, "Error", http.StatusInternalServerError)
+			return
+		}
+		page = page_number
+	}
+
+	start := (page-1)*page_size
+	end := start + page_size
+
+	if start > len(list) {
+		start = len(list)
+	}
+
+	if end > len(list) {
+		end = len(list)
+	}
+
+	page_contacts := list[start:end]
+
+	if r.Header.Get("HX-Trigger") == "search" {
+		plantilla := rows(page_contacts)
+		err := plantilla.Render(r.Context(), w)
+		if err != nil {
+			http.Error(w, "Error", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	plantilla := layout(contacts(page_contacts, search, page))
 	err := plantilla.Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, "Error", http.StatusInternalServerError)
@@ -147,4 +190,30 @@ func delete_contact_handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/contacts", http.StatusSeeOther)
+}
+
+func get_validate_email_handler(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	id_number, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+	contact := search_contact_by_id(id_number)
+	if contact == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	contact_to_validate := *contact
+	contact_to_validate.Email = r.URL.Query().Get("email")
+
+	email_error := validate_email(id_number, contact_to_validate.Email)
+
+	w.Write([]byte(email_error))
+}
+
+func get_contacts_count_handler(w http.ResponseWriter, r *http.Request) {
+	count := len(contactList)
+	fmt.Fprintf(w, "(%d total Contacts)", count)
 }
