@@ -32,6 +32,8 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 	var list []Contact
 
 	if search != "" {
+		// Itera por la lista de contactos y encuentra los que contienen el término de búsqueda en primer
+		// nombre, apellido, email o telefono
 		for _, c := range contactList {
 			if strings.Contains(strings.ToLower(c.First), strings.ToLower(search)) ||
 			strings.Contains(strings.ToLower(c.Last), strings.ToLower(search)) ||
@@ -46,6 +48,7 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 
 	page := 1
 	page_size := 10
+	// Si el query param de page no está vacio, se castea a int y si no da error se usa para paginacion
 	if page_string != "" {
 		page_number, err := strconv.Atoi(page_string)
 		if err != nil {
