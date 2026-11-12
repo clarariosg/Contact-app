@@ -1,6 +1,8 @@
 package main
 
 import "strconv"
+import "contact-app/archiver"
+import "fmt"
 
 templ layout(content templ.Component) {
 	<!DOCTYPE html>
@@ -10,6 +12,7 @@ templ layout(content templ.Component) {
 			<script src="/js/htmx.js"></script>
 			<link rel="stylesheet" href="https://unpkg.com/missing.css@1.2.0"/>
 			<link rel="stylesheet" href="/style.css"/>
+			<script src="https://unpkg.com/hyperscript.org@0.9.14"></script>
 		</head>
 		<body hx-boost="true">
 			<main>
@@ -24,7 +27,8 @@ templ layout(content templ.Component) {
 	</html>
 }
 
-templ contacts(list []Contact, search string, page int) {
+templ contacts(list []Contact, search string, page int, archiver *archiver.Archiver) {
+	@archive_ui(archiver)
 	// formulario de busqueda
 	<form action="/contacts" method="get" class="tool-bar">
 		// Descripcion del input
@@ -100,8 +104,10 @@ templ contacts(list []Contact, search string, page int) {
 
 templ rows(list []Contact) {
 	for _, c := range list {
+		// fila por cada contacto de la lista
 		<tr>
 			<td>
+				// input de selección para eliminar 
 				<input
 					type="checkbox"
 					name="selected_contact_ids"
@@ -128,6 +134,7 @@ templ rows(list []Contact) {
 }
 
 templ new(contact Contact) {
+	// formulario para crear un nuevo contacto
 	<form action="/contacts/new" method="post">
 		<fieldset>
 			<legend>Contact Values</legend>
@@ -192,6 +199,7 @@ templ view(contact Contact) {
 }
 
 templ edit(contact Contact) {
+	// formulario de editar contacto
 	<form action={ "/contacts/" + strconv.Itoa(contact.ID) + "/edit" } method="post">
 		<fieldset>
 			<legend>Contact Values</legend>
@@ -254,4 +262,40 @@ templ edit(contact Contact) {
 	<p>
 		<a href="/contacts">Back</a>
 	</p>
+}
+
+templ archive_ui(archiver *archiver.Archiver) {
+	<div
+		id="archive-ui"
+		hx-target="this"
+		hx-swap="outerHTML"
+	>
+		if archiver.Status() == "waiting" {
+			<button hx-post="/contacts/archive">
+				Download Contact Archive
+			</button>
+		} else if archiver.Status() == "running" {
+			<div hx-get="/contacts/archive" hx-trigger="load delay:500ms">
+				Creating Archive...
+				<div class="progress">
+					<div
+						id="archive-progress"
+						class="progress-bar"
+						role="progressbar"
+						aria-valuenow={ archiver.Progress() * 100 }
+						style={ fmt.Sprintf("width:%d%%", int(archiver.Progress()*100)) }
+					></div>
+				</div>
+			</div>
+		} else if archiver.Status() == "complete" {
+			<a
+				hx-boost="false"
+				href="/contacts/archive/file"
+				_="on load click() me"
+			>
+				Archive Downloading! Click here if the download does not start.
+			</a>
+			<button hx-delete="/contacts/archive">Clear Download</button>
+		}
+	</div>
 }

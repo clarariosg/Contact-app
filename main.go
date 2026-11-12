@@ -1,11 +1,11 @@
 package main
 
 import (
+	"contact-app/archiver"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
-	//"strconv"
 )
 
 func main() {
@@ -16,12 +16,16 @@ func main() {
 	http.HandleFunc("GET /contacts/{id}/edit", get_edit_contact_handler)
 	http.HandleFunc("GET /contacts/{id}/email", get_validate_email_handler)
 	http.HandleFunc("GET /contacts/count", get_contacts_count_handler)
+	http.HandleFunc("GET /contacts/archive", get_archive_status_handler)
+	http.HandleFunc("GET /contacts/archive/file", get_archive_content_handler)
 
 	http.HandleFunc("POST /contacts/new", post_add_contact_handler)
 	http.HandleFunc("POST /contacts/{id}/edit", post_edit_contact_handler)
+	http.HandleFunc("POST /contacts/archive", post_start_archive_handler)
 
 	http.HandleFunc("DELETE /contacts/{id}", delete_contact_handler)
 	http.HandleFunc("DELETE /contacts", delete_all_contact_handler)
+	http.HandleFunc("DELETE /contacts/archive", delete_contact_archive_handler)
 
 	http.ListenAndServe(":8080", nil)
 }
@@ -70,7 +74,7 @@ func get_contacts_handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plantilla := layout(contacts(page_contacts, search, page))
+	plantilla := layout(contacts(page_contacts, search, page, archiver.Get()))
 	err := plantilla.Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, "Error", http.StatusInternalServerError)
@@ -239,7 +243,56 @@ func delete_all_contact_handler(w http.ResponseWriter, r *http.Request) {
 	
 	page_contacts := paginate_contacts(contactList, page, 10)
 
-	plantilla := layout(contacts(page_contacts, "", 1))
+	plantilla := layout(contacts(page_contacts, "", 1, archiver.Get()))
+	err := plantilla.Render(r.Context(), w)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func post_start_archive_handler(w http.ResponseWriter, r *http.Request) {
+	archiver := archiver.Get()
+	archiver.Run()
+
+	plantilla := archive_ui(archiver)
+	err := plantilla.Render(r.Context(), w)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func get_archive_status_handler(w http.ResponseWriter, r *http.Request) {
+	archiver := archiver.Get()
+	plantilla := archive_ui(archiver)
+	err := plantilla.Render(r.Context(), w)
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func get_archive_content_handler(w http.ResponseWriter, r *http.Request) {
+	archiver := archiver.Get()
+	data := archiver.Archive_file(contactList)
+	if data == nil {
+		http.Error(w, "Failed to archive contact list", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"contacts.json\"")
+	_, err := w.Write(data.([]byte))
+	if err != nil {
+		http.Error(w, "Error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func delete_contact_archive_handler(w http.ResponseWriter, r *http.Request) {
+	archiver := archiver.Get()
+	archiver.Reset()
+	plantilla := archive_ui(archiver)
 	err := plantilla.Render(r.Context(), w)
 	if err != nil {
 		http.Error(w, "Error", http.StatusInternalServerError)
