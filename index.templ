@@ -14,6 +14,7 @@ templ layout(content templ.Component) {
 			<link rel="stylesheet" href="/style.css"/>
 			<script src="https://unpkg.com/hyperscript.org@0.9.14"></script>
 			<script src="/js/rsjs.js"></script>
+			<script src="https://unpkg.com/alpinejs"></script>
 		</head>
 		<body hx-boost="true">
 			<main>
@@ -56,7 +57,25 @@ templ contacts(list []Contact, search string, page int, archiver *archiver.Archi
 		<input type="submit" value="Search"/>
 	</form>
 	// Tabla de contactos (resultados de busqueda)
-	<form>
+	<form x-data="{ selected: []}">
+		<template x-if="selected.length > 0">
+			<div class="box info tool-bar">
+				<slot x-text="selected.length"></slot>
+				contacts selected
+				<button
+					type="button"
+					class="bad bg color border"
+					@click="
+						confirm(`Delete ${selected.length} contacts?`) && 
+						htmx.ajax('DELETE', '/contacts',
+						{ source: $root, target: document.body })"
+				>
+					Delete
+				</button>
+				<hr aria-orientation="vertical"/>
+				<button type="button" @click="selected = []">Cancel</button>
+			</div>
+		</template>
 		<table>
 			<thead>
 				<tr>
@@ -113,6 +132,7 @@ templ rows(list []Contact) {
 					type="checkbox"
 					name="selected_contact_ids"
 					value={ c.ID }
+					x-model="selected"
 				/>
 			</td>
 			<td>{ c.First }</td>
