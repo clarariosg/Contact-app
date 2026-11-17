@@ -16,6 +16,7 @@ templ layout(content templ.Component) {
 			<script src="/js/rsjs.js"></script>
 			<script src="https://unpkg.com/alpinejs"></script>
 			<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+			<script src="/js/sweetconfirm.js"></script>
 		</head>
 		<body hx-boost="true">
 			<main>
@@ -68,14 +69,14 @@ templ contacts(list []Contact, search string, page int, archiver *archiver.Archi
 				<button
 					type="button"
 					class="bad bg color border"
-					@click="Swal.fire({ 
+					hx-delete="/contacts"
+					hx-target="body"
+					hx-trigger="confirmed"
+					@click="sweetConfirm($el, { 
 						title: 'Delete these contacts?', 
 						showCancelButton: true,
 						confirmButtonText: 'Delete'
-					}).then((result) => { 
-						if (result.isConfirmed) htmx.ajax('DELETE', '/contacts',
-							{ source: $root, target: document.body })
-					});"
+					})"
 				>Delete</button>
 				<hr aria-orientation="vertical"/>
 				<button type="button" @click="selected = []">Cancel</button>
