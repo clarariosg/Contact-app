@@ -36,16 +36,18 @@ templ contacts(list []Contact, search string, page int, archiver *archiver.Archi
 		// Descripcion del input
 		<label for="search">Search </label>
 		// Input de texto para buscar contactos
-		<input
-			id="search"
-			type="search"
-			name="q"
-			value={ search }
-			hx-get="/contacts"
-			hx-trigger="search, keyup delay:200ms changed"
-			hx-target="tbody"
-			hx-push-url="true"
-			hx-indicator="#spinner"
+			<input
+				id="search"
+				type="search"
+				name="q"
+				value={ search }
+				hx-get="/contacts"
+				hx-trigger="search, keyup delay:200ms changed"
+				hx-target="tbody"
+				hx-push-url="true"
+				hx-indicator="#spinner"
+				_="on keydown[altKey and code is 'KeyS'] from the window
+					focus() me"
 		/>
 		// spinner circular de carga
 		<img
